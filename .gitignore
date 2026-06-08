@@ -1,0 +1,55 @@
+# PyTorch weights (large file)
+*.pth
+*.pt
+*.ckpt
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+*.egg-info/
+dist/
+build/
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# Vivado/Vitis
+*.jou
+*.log
+*.str
+*.tmp
+xsim/
+.sim/
+vivado_*.log
+vitis_*.log
+
+# Folded weights (can be regenerated)
+tools/predictor/folded_weights/
+folded_weights/
+
+# Image data (optional, can be large)
+tools/predictor/img/
+tools/predictor/txt/
+tools/predictor/yolo_test/
+tools/predictor/yolo_test10/
+tools/predictor/yolotest10/
+
+# Large test data
+*.jpg
+*.png
+*.bmp
+*.mp4
