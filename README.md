@@ -4,11 +4,10 @@ FPGA-based hardware accelerator for YOLOv4-tiny object detection, optimized for 
 
 ## Hardware Platform
 
-- **Current Platform**: PYNQ-Z2 (Zynq-7020) — for **proof-of-concept and validation**
-- **Target Platform**: Zynq UltraScale+ ZU3EG / Zynq MPSoC — for **actual UAV deployment**
+- **Current Platform**: PYNQ-Z2 (Zynq-7020) — for proof-of-concept and validation
 - **Tool**: Vivado HLS 2022.1 + Vitis 2022.1
 
-> **Note**: The PYNQ-Z2 (development board) is too large for direct UAV mounting. This work focuses on **algorithm optimization and architecture design**, providing a foundation for porting to smaller, UAV-suitable FPGA chips.
+> **Note**: The PYNQ-Z2 is a development board. For actual UAV deployment, the design can be ported to smaller FPGA chips (e.g., Zynq UltraScale+ ZU3EG) with custom PCB design.
 
 ---
 
@@ -20,7 +19,7 @@ yolov4-tiny-uav-edge/
 │   ├── conv.cpp     # Convolution with double-buffered memory hierarchy
 │   ├── sparse_conv.cpp # Sparse convolution (exploits ReLU sparsity)
 │   ├── maxpool.cpp  # Max pooling
-│   ├── upsample.cpp # Upsamping
+│   ├── upsample.cpp # Upsampling
 │   └── std_conv.cpp # Standard convolution
 ├── Vitis/src/       # ARM-side application (C++)
 │   ├── main.cpp     # Main application
@@ -37,35 +36,25 @@ yolov4-tiny-uav-edge/
 
 ---
 
-## Key Optimizations (Original Contributions)
+## Key Optimizations
 
 ### 1. Double-Buffered Memory Hierarchy
-Overlaps data movement and computation using ping-pong buffers (`fm_buf_0`, `fm_buf_1`), reducing idle cycles by **23%**.
+Overlaps data movement and computation using ping-pong buffers, reducing idle cycles.
 
 ### 2. Sparse Convolution
-Exploits ReLU-induced sparsity to skip zero-weight computations, reducing MAC operations by **18-25%** (model-dependent).
+Exploits ReLU-induced sparsity to skip zero-weight computations, reducing MAC operations.
 
-### 3. Motion-Adaptive Inference (UAV-Specific)
-Detects UAV motion between frames; skips inference when hovering (saves **40% power**). Critical for battery-limited UAVs.
+### 3. Motion-Adaptive Inference
+Detects UAV motion between frames; skips inference when hovering (power saving).
 
 ---
 
-## Application Scenarios (Why UAV + FPGA?)
+## Application Scenarios
 
-### Problem
-UAVs need real-time object detection (search & rescue, inspection, surveillance), 
-### Solution: FPGA-Based Edge AI
-| Approach | FPS | Power | UAV-Suitable? |
-|----------|------|-------|----------------|
-| CPU (i7-11800H) | 7.3 | 45W | ❌ Too power-hungry |
-| GPU (RTX 3060) | 65 | 170W | ❌ Too heavy |
-| **FPGA (this work)** | **TBD** | **~3W** | ✅ **Yes** (future ZU3EG: 2-3W, 30×30mm) |
-
-### Target Use Cases
-1. **Search & Rescue**: Detect humans in wilderness (thermal + RGB fusion)
-2. **Infrastructure Inspection**: Crack/pothole detection on bridges, power lines
-3. **Precision Agriculture**: Crop health monitoring, pest detection
-4. **Disaster Response**: Fire/smoke detection in forests (your Wildfire Drone project!)
+- **Search & Rescue**: Detect humans in wilderness
+- **Infrastructure Inspection**: Crack/pothole detection on bridges, power lines
+- **Precision Agriculture**: Crop health monitoring, pest detection
+- **Disaster Response**: Fire/smoke detection in forests
 
 ---
 
@@ -91,7 +80,7 @@ vivado_hls -f run_hls.tcl
 # Generates RTL (Verilog/VHDL)
 ```
 
-### 4. Deploy on PYNQ-Z2 (or future ZU3EG)
+### 4. Deploy on PYNQ-Z2
 ```bash
 cd Vitis
 vitis -workspace workspace
@@ -100,24 +89,16 @@ vitis -workspace workspace
 
 ---
 
-## Future Work (Toward Actual UAV Deployment)
+## Future Work
 
-### 1. Port to Zynq UltraScale+ ZU3EG
-- Package: 30×30mm (vs PYNQ-Z2: 100×70mm)
-- Power: 2-3W (vs PYNQ-Z2: 5W)
-- Weight: 5g (vs PYNQ-Z2: 200g)
+### 1. Port to Smaller FPGA
+Target: Zynq UltraScale+ ZU3EG (23×23mm chip, suitable for UAV mounting with custom PCB)
 
 ### 2. Quantize to INT8
-- Reduces DSP usage by 50%
-- Fits in smaller FPGA (ZU3EG has 360 DSPs vs Zynq-7020's 220)
+Reduce DSP usage, fit in smaller FPGA.
 
-### 3. Multi-Object Tracking (MOT)
-- Add DeepSORT to FPGA pipeline
-- Enables persistent target tracking across frames
-
-### 4. Thermal + RGB Fusion
-- Process thermal (IR) and RGB simultaneously
-- Critical for night/search & rescue missions
+### 3. Integrate with UAV Flight Controller
+Connect with PX4/ArduPilot via MAVLink for closed-loop UAV applications.
 
 ---
 
@@ -128,7 +109,7 @@ vitis -workspace workspace
 - Vitis 2022.1+
 - Python 3.8+ (for weight generation)
 
-### Quick Start (PYNQ-Z2)
+### Quick Start
 ```bash
 git clone https://github.com/DaCui-30/yolov4-tiny-uav-edge.git
 cd yolov4-tiny-uav-edge
@@ -138,40 +119,6 @@ cd yolov4-tiny-uav-edge
 
 ---
 
-## Contributing
-
-This is an **active research project**. Contributions welcome:
-- Port to Zynq UltraScale+ / Zynq MPSoC
-- Add INT8 quantization
-- Optimize for specific UAV platforms (DJI Matrice, Skydio, etc.)
-- Add multi-object tracking
-
----
-
-## Author
-
-**Da Cui**
-- M.Sc. in Computer Science, Durham University (2024)
-- Research: FPGA acceleration, UAV edge AI, computer vision
-- Current: Lecturer at Xing An Polytechnic University (Emergency Rescue Technology, UAV Application Technology)
-- GitHub: @DaCui-30
-- Email: adaxiiiiiii@gmail.com
-
----
-
 ## License
 
 MIT License - see LICENSE file for details.
-
----
-
-## ⚠️ Disclaimer
-
-This codebase is a **research prototype**. The PYNQ-Z2 is a development board, 
-**Actual UAV deployment requires**:
-1. Porting to smaller FPGA (Zynq UltraScale+ ZU3EG recommended)
-2. Custom PCB design (power, thermal, vibration isolation)
-3. Integration with UAV flight controller (PX4, ArduPilot)
-4. Real-world testing and certification
-
-This work provides the **algorithmic foundation and architecture design** for that eventual deployment.
